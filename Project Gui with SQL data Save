@@ -1,0 +1,68 @@
+import tkinter as tk
+from tkinter import messagebox
+import mysql.connector.connection
+
+class StudentDataApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Student Data Collection")
+
+        self.name_label = tk.Label(root, text="Name:")
+        self.name_label.pack()
+        self.name_entry = tk.Entry(root)
+        self.name_entry.pack()
+
+        self.reg_no_label = tk.Label(root, text="Registration Number:")
+        self.reg_no_label.pack()
+        self.reg_no_entry = tk.Entry(root)
+        self.reg_no_entry.pack()
+
+        self.dob_label = tk.Label(root, text="Date of Birth (YYYY-MM-DD):")
+        self.dob_label.pack()
+        self.dob_entry = tk.Entry(root)
+        self.dob_entry.pack()
+
+        self.submit_button = tk.Button(root, text="Submit", command=self.submit_data)
+        self.submit_button.pack()
+
+        # SQL Database connection code enteredGUI working but SQl not connecting
+        self.db_connection = mysql.connector.connect(
+            host="localhost",
+            user="root",  # Replace with your MySQL username
+            password="1234",  # Replace with your MySQL password
+            database="python"  # Replace with your database name
+        )
+        self.cursor = self.db_connection.cursor()
+
+    def submit_data(self):
+        name = self.name_entry.get()
+        reg_no = self.reg_no_entry.get()
+        dob = self.dob_entry.get()
+
+        if name and reg_no and dob:
+            try:
+                # Insert data into the database
+                insert_query = "INSERT INTO students (name, registration_number, date_of_birth) VALUES (%s, %s, %s)"
+                self.cursor.execute(insert_query, (name, reg_no, dob))
+                self.db_connection.commit()
+                
+                messagebox.showinfo("Success", "Data submitted successfully!")
+                self.clear_entries()
+            except mysql.connector.Error as err:
+                messagebox.showerror("Database Error", f"Error: {err}")
+        else:
+            messagebox.showwarning("Input Error", "Please fill in all fields.")
+
+    def clear_entries(self):
+        self.name_entry.delete(0, tk.END)
+        self.reg_no_entry.delete(0, tk.END)
+        self.dob_entry.delete(0, tk.END)
+
+    def __del__(self):
+        self.cursor.close()
+        self.db_connection.close()
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = StudentDataApp(root)
+    root.mainloop()
